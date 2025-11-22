@@ -1,11 +1,50 @@
-import matter from "gray-matter";
-
 // Simple reading time calculation (average 200 words per minute)
 function calculateReadingTime(text: string): string {
   const wordsPerMinute = 200;
   const words = text.trim().split(/\s+/).length;
   const minutes = Math.ceil(words / wordsPerMinute);
   return `${minutes} min read`;
+}
+
+// Simple frontmatter parser (browser-compatible replacement for gray-matter)
+function parseFrontmatter(rawContent: string): { data: Record<string, unknown>; content: string } {
+  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+  const match = rawContent.match(frontmatterRegex);
+
+  if (!match) {
+    return { data: {}, content: rawContent };
+  }
+
+  const frontmatterStr = match[1];
+  const content = match[2];
+  const data: Record<string, unknown> = {};
+
+  // Parse YAML-like frontmatter (simple key: value pairs)
+  const lines = frontmatterStr.split("\n");
+  for (const line of lines) {
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) continue;
+
+    const key = line.slice(0, colonIndex).trim();
+    let value: unknown = line.slice(colonIndex + 1).trim();
+
+    // Handle arrays like ["tag1", "tag2"]
+    if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        // Keep as string if JSON parse fails
+      }
+    }
+    // Remove quotes from strings
+    else if (typeof value === "string" && value.startsWith('"') && value.endsWith('"')) {
+      value = value.slice(1, -1);
+    }
+
+    data[key] = value;
+  }
+
+  return { data, content };
 }
 
 export interface BlogPost {
@@ -39,7 +78,7 @@ function parseMarkdownFile(
   rawContent: string
 ): BlogPost | null {
   try {
-    const { data, content } = matter(rawContent);
+    const { data, content } = parseFrontmatter(rawContent);
     const slug = filePath.replace("/src/content/blog/", "").replace(".md", "");
 
     return {
