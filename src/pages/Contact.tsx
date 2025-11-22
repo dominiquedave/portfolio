@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mail, Calendar, Linkedin, Github, Twitter } from "lucide-react"
+import { Mail, Calendar, Linkedin, Github, Twitter, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+
+type FormStatus = "idle" | "loading" | "success" | "error"
 
 const contactMethods = [
   {
@@ -34,13 +36,43 @@ export function Contact() {
     email: "",
     message: "",
   })
+  const [status, setStatus] = useState<FormStatus>("idle")
+  const [errorMessage, setErrorMessage] = useState("")
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    // Handle form submission - could integrate with a backend service
-    console.log("Form submitted:", formData)
-    alert("Thanks for your message! I'll get back to you soon.")
-    setFormData({ name: "", email: "", message: "" })
+    setStatus("loading")
+    setErrorMessage("")
+
+    try {
+      const response = await fetch(import.meta.env.VITE_FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to send message")
+      }
+
+      setStatus("success")
+      setFormData({ name: "", email: "", message: "" })
+
+      setTimeout(() => setStatus("idle"), 5000)
+    } catch (error) {
+      setStatus("error")
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to send message. Please try again."
+      )
+    }
   }
 
   return (
@@ -77,6 +109,7 @@ export function Contact() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
+                    disabled={status === "loading"}
                     required
                   />
                 </div>
@@ -92,6 +125,7 @@ export function Contact() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    disabled={status === "loading"}
                     required
                   />
                 </div>
@@ -106,11 +140,34 @@ export function Contact() {
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
                     }
+                    disabled={status === "loading"}
                     required
                   />
                 </div>
-                <Button type="submit" size="lg" className="w-full">
-                  Send Message
+
+                {status === "success" && (
+                  <div className="flex items-center gap-2 p-4 rounded-lg bg-green-500/10 text-green-500 border border-green-500/20">
+                    <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                    <p>Thanks for your message! I'll get back to you soon.</p>
+                  </div>
+                )}
+
+                {status === "error" && (
+                  <div className="flex items-center gap-2 p-4 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20">
+                    <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                    <p>{errorMessage}</p>
+                  </div>
+                )}
+
+                <Button type="submit" size="lg" className="w-full" disabled={status === "loading"}>
+                  {status === "loading" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
                 </Button>
               </form>
             </div>
