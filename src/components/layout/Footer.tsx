@@ -9,7 +9,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="text-2xl font-bold">
-              Tri<span className="text-accent">Tech</span>
+              Trident<span className="text-accent">Technologies</span>
             </Link>
             <p className="mt-4 text-foreground-muted">
               Strategic software engineering for growth-focused businesses.
@@ -76,7 +76,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border text-center text-foreground-muted">
-          <p>&copy; 2025 TriTech. All rights reserved.</p>
+          <p>&copy; 2025 Trident Technologies. All rights reserved.</p>
         </div>
       </div>
     </footer>

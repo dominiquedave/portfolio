@@ -19,7 +19,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 h-20 bg-background/95 backdrop-blur border-b border-border">
       <div className="max-w-[1200px] mx-auto px-6 h-full flex items-center justify-between">
         <Link to="/" className="text-2xl font-bold">
-          Tri<span className="text-accent">Tech</span>
+          Trident<span className="text-accent">Technologies</span>
         </Link>
 
         {/* Desktop Navigation */}
